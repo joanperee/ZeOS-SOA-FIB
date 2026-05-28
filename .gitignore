@@ -1,0 +1,17 @@
+# --- Fitxers de compilació (Binaris) ---
+*.o
+*.s
+*.bin
+system
+zeos.bin
+
+# --- Fitxers temporals i de depuració ---
+*.out
+*.map
+vgcore.*
+.DS_Store
+.log
+
+# --- Fitxers de l'emulador (si useu Bochs o QEMU) ---
+bochsrc.txt
+parport.out
