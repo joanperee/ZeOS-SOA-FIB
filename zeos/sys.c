@@ -161,19 +161,17 @@ void* sys_shmat(int id, void* addr)
     unsigned int addr_page;
     page_table_entry *proc_tp = get_PT(current());
 
-
     if (addr == NULL)
     {
         addr_page = get_user_free_page(current());
         if (addr_page == -1) return (void*) -ENOMEM;
     }
     else
-    
+    {
         if (((unsigned int) addr) % PAGE_SIZE != 0) return (void*) -EINVAL;    
 
         unsigned int req_page = ((unsigned int) addr) >> 12;
         
-
         if (req_page < 1024) return (void*) -EINVAL; 
 
         addr_page = req_page - 1024; 
@@ -197,7 +195,9 @@ void* sys_shmat(int id, void* addr)
 
     set_cr3(get_DIR(current()));
 
+
     shm_table[id].refs++;
     
+
     return (void *) ((1024 + addr_page) << 12);
 }
