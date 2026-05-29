@@ -32,8 +32,8 @@ main(void)
   if (write(1, "\n ------------------------------\n", 33) < 0) perror(); // separador
 
   /* PAGE FAULT EXCEPTION */
-  //	char* p = 0;
-  //	p = 'x';
+  //  char* p = 0;
+  //  p = 'x';
 
   /* GETPID SYSCALL ALREADY TESTED*/
   // MILESTONE 3: getpid() syscall reformatted to debug the memory expansion

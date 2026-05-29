@@ -171,3 +171,7 @@ ENTRY(ret_from_fork)
       movl $0, %eax
       popl %ebp
       ret
+
+ENTRY(get_ebp)
+      movl %ebp, %eax
+      ret

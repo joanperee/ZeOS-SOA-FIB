@@ -24,6 +24,9 @@
 #define LECTURA 0
 #define ESCRIPTURA 1
 
+#define NUM_PAG_KERNEL 256
+int global_PID = 2; // Empezamos a repartir desde el PID 2
+
 extern int zeos_ticks;
 
 extern Circbuffer c;
@@ -148,10 +151,111 @@ int sys_set_color(int fg, int bg)
   return 0;
 }
 
+extern int get_ebp();
+void ret_from_fork();
+
 int sys_fork(void)
 {
-  return -1;
+  return -1
+  /**
+    printk("\n[DBG-FORK] 1. Entrant a sys_fork...");
+    struct list_head *lhcurrent = NULL;
+    union task_union *uchild;
+
+    if (list_empty(&freequeue)) return -ENOMEM;
+
+    lhcurrent = list_first(&freequeue);
+    list_del(lhcurrent);
+    uchild = (union task_union*)list_head_to_task_struct(lhcurrent);
+
+    printk("\n[DBG-FORK] 2. PCB del fill assignat.");
+
+    copy_data(current(), uchild, sizeof(union task_union));
+
+
+    allocate_DIR((struct task_struct*)uchild);
+
+    printk("\n[DBG-FORK] 3. DIR creat. Buscant frames de DATA...");
+    int new_ph_pag, pag, i;
+    page_table_entry *process_PT = get_PT(&uchild->task);
+
+
+    for (pag = 0; pag < NUM_PAG_DATA; pag++)
+    {
+        new_ph_pag = alloc_frame();
+        if (new_ph_pag != -1) {
+
+            set_ss_pag(process_PT, PAG_LOG_INIT_DATA + pag, new_ph_pag, 1);
+        } else {
+
+            for (i = 0; i < pag; i++) {
+                free_frame(get_frame(process_PT, PAG_LOG_INIT_DATA + i));
+                del_ss_pag(process_PT, PAG_LOG_INIT_DATA + i);
+            }
+            list_add_tail(lhcurrent, &freequeue);
+            printk("\n[DBG-FORK] ERROR: Sense frames lliures!");
+            return -ENOMEM;
+        }
+    }
+
+    printk("\n[DBG-FORK] 4. Compartint CODE...");
+    page_table_entry *parent_PT = get_PT(current());
+
+
+    for (pag = 0; pag < NUM_PAG_CODE; pag++) {
+        set_ss_pag(process_PT, PAG_LOG_INIT_CODE + pag, get_frame(parent_PT, PAG_LOG_INIT_CODE + pag), 0);
+    }
+
+    printk("\n[DBG-FORK] 5. Copiant dades del pare al fill...");
+    unsigned int TEMP_PAGE = 1000; 
+
+
+    for (pag = 0; pag < NUM_PAG_DATA; pag++)
+    {
+        unsigned int child_frame = get_frame(process_PT, PAG_LOG_INIT_DATA + pag);
+        
+
+        set_ss_pag(parent_PT, TEMP_PAGE, child_frame, 0);
+        
+
+        void *src = (void *)((1024 + PAG_LOG_INIT_DATA + pag) << 12);
+        void *dst = (void *)((1024 + TEMP_PAGE) << 12);
+        
+        copy_data(src, dst, PAGE_SIZE);
+        
+
+        del_ss_pag(parent_PT, TEMP_PAGE);
+    }
+
+    printk("\n[DBG-FORK] 6. Buidant TLB");
+
+    set_cr3(get_DIR(current()));
+
+    uchild->task.PID = ++global_PID;
+    uchild->task.state = ST_READY;
+
+
+    int register_ebp;
+    register_ebp = (int) get_ebp();
+    register_ebp = (register_ebp - (int)current()) + (int)(uchild);
+
+    uchild->task.kernel_esp = register_ebp + sizeof(DWord);
+    DWord temp_ebp = *(DWord*)register_ebp;
+
+    uchild->task.kernel_esp -= sizeof(DWord);
+    *(DWord*)(uchild->task.kernel_esp) = (DWord)&ret_from_fork;
+
+    uchild->task.kernel_esp -= sizeof(DWord);
+    *(DWord*)(uchild->task.kernel_esp) = temp_ebp;
+
+    printk("\n[DBG-FORK] 7. Fill encolat! Retornant PID...");
+
+    list_add_tail(&(uchild->task.list), &readyqueue);
+
+    return uchild->task.PID;
+    **/
 }
+
 
 void* sys_shmat(int id, void* addr)
 {
